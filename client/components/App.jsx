@@ -20,6 +20,7 @@ export default function App() {
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [events, setEvents] = useState([]);
     const [dataChannel, setDataChannel] = useState(null);
+    const [stream, setStream] = useState(null);
     const peerConnection = useRef(null);
     const audioElement = useRef(null);
 
@@ -44,6 +45,33 @@ export default function App() {
     const uiMargin = "5%";
     const bgScale = isMobile ? 0.6 : 1;
     // ------------------------
+
+    useEffect(() => {
+        const requestPermission = async () => {
+            try {
+                const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                setStream(mediaStream);
+                console.log("Microphone access granted on load.");
+                cons
+            } catch (err) {
+                console.error("Error accessing microphone on load:", err);
+                // Inform the user they need to manually enable the mic in browser settings
+            }
+        };
+
+        requestPermission();
+        console.log(stream);
+
+        // Optional: return a cleanup function to stop the tracks when the component unmounts
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, []); // Empty dependency array runs once on mount
+
+
+
 
     async function startSession() {
         const tokenResponse = await fetch("/token");
@@ -690,16 +718,38 @@ Operational Constraints
                         <AudioWaveform isAnimating={isSessionActive} />
                     </div>
 
-                    <div style={{ marginBottom: "10px" }}>
-                        <ListeningStatus
-                            title={isSessionActive ? "Escuchando" : "Presiona para hablar"}
-                            subtitle={
-                                isSessionActive
-                                    ? "Realiza tus preguntas acerca de DIOS"
-                                    : "El micrófono se encuentra apagado"
-                            }
-                        />
-                    </div>
+                    {
+                        stream ? (
+
+
+                            <div style={{ marginBottom: "10px" }}>
+                                <ListeningStatus
+                                    title={isSessionActive ? "Escuchando" : "Presiona para hablar"}
+                                    subtitle={
+                                        isSessionActive
+                                            ? "Realiza tus preguntas acerca de DIOS"
+                                            : "El micrófono se encuentra apagado"
+                                    }
+                                />
+                            </div>
+
+
+                        ) : (
+
+                            <div style={{ marginBottom: "10px" }}>
+                                <ListeningStatus
+                                    title={"Es necesario contar con acceso al micrófono..."}
+                                    subtitle={
+                                        "Recomendamos recargar la pagina y aceptar el uso del micrófono"
+                                    }
+                                />
+                            </div>
+
+                        )
+
+
+
+                    }
                 </div>
             </div>
         </>

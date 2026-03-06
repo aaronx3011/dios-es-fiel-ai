@@ -52,7 +52,6 @@ export default function App() {
                 const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                 setStream(mediaStream);
                 console.log("Microphone access granted on load.");
-                cons
             } catch (err) {
                 console.error("Error accessing microphone on load:", err);
                 // Inform the user they need to manually enable the mic in browser settings
@@ -477,9 +476,29 @@ Operational Constraints
         : backgroundBcools;
     // ----------------------------
 
+
+    const handleScreenClick = (e) => {
+        // If the click happened on a button (or inside one), ignore it
+        if (e.target.closest('button')) {
+            return;
+        }
+
+        // Only proceed if we have microphone permission
+        if (!stream) return;
+
+        // Toggle the session
+        if (isSessionActive) {
+            stopSession();
+        } else {
+            startSession();
+        }
+    };
+
+
     return (
         <>
             <div
+                onClick={handleScreenClick}
                 style={{
                     position: "relative",
                     width: "100vw",
